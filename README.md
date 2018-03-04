@@ -1,2 +1,2 @@
-# db_project
+# sql_turismo
 Just college db project
