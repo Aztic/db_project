@@ -6,24 +6,30 @@ CREATE DOMAIN tipo_ruta
   as VARCHAR(20)
   CHECK (VALUE IN ('Avión','Barco','Taxi'));
 
+CREATE DOMAIN tipo_posada
+  as VARCHAR(10)
+  CHECK (VALUE IN ('Apartamento','Casa'));
+
 CREATE TABLE cliente(
-  id_cliente INTEGER,
+  id_cliente VARCHAR(40),
   usuario VARCHAR(30) NOT NULL,
+  ciudad VARCHAR(30),
   clave VARCHAR(255) NOT NULL,
-  estado VARCHAR(20),
-  nacionalidad VARCHAR(20) NOT NULL,
-  nombre_c VARCHAR(20) NOT NULL,
+  estado VARCHAR(30),
+  nacionalidad VARCHAR(30) NOT NULL,
+  nombre_c VARCHAR(40) NOT NULL,
   edo_civil estado_civil NOT NULL,
   PRIMARY KEY (id_cliente)
 );
 
 CREATE TABLE destino_turistico(
-  nombre VARCHAR(100),
+  nombre VARCHAR(40),
   PRIMARY KEY (nombre)
 );
 
 CREATE TABLE plan_transporte(
   id_transporte VARCHAR(50),
+  descripcion VARCHAR(100),
   PRIMARY KEY (id_transporte)
 );
 
@@ -38,60 +44,108 @@ CREATE TABLE programa(
 
 CREATE TABLE hospedaje(
   precio FLOAT NOT NULL,
-  rif VARCHAR(100) NOT NULL,
-  direccion VARCHAR(100) NOT NULL,
+  rif VARCHAR(30) NOT NULL,
+  direccion VARCHAR(60) NOT NULL,
   PRIMARY KEY (rif, direccion)
+);
+
+CREATE TABLE hotel(
+  rif_hotel VARCHAR(30),
+  direccion_h VARCHAR,
+  estrellas INTEGER NOT NULL,
+  servicio BOOLEAN NOT NULL,
+  precio INTEGER NOT NULL,
+  CONSTRAINT precio_valido CHECK(
+    precio > 0
+  ),
+  PRIMARY KEY(rif_hotel,direccion_h)
 );
 
 CREATE TABLE posada(
   rif_posada VARCHAR(100),
+  direccion_p VARCHAR,
   calidad INTEGER NOT NULL,
   servicioP INTEGER NOT NULL,
-  habitaciones INTEGER NOT NULL,
+  habitacion INTEGER NOT NULL,
+  tipo tipo_posada NOT NULL,
+  precio INTEGER NOT NULL,
   CONSTRAINT puntuacion_valida CHECK (
     calidad > 0
   ),
   CONSTRAINT cantidad_habitaciones_valida CHECK (
-    habitaciones > 0
+    habitacion > 0
   ),
-  PRIMARY KEY (rif_posada)
+  CONSTRAINT precio_valido CHECK (
+    precio > 0
+  ),
+  PRIMARY KEY (rif_posada, direccion_p)
 );
 
 CREATE TABLE residencia(
   rif_resid VARCHAR(100),
+  direccion_r VARCHAR,
   servicio_residencia BOOLEAN NOT NULL,
-  PRIMARY KEY (rif_resid)
+  precio INTEGER NOT NULL,
+  CONSTRAINT precio_valio CHECK(
+    precio > 0
+  ),
+  PRIMARY KEY (rif_resid, direccion_r)
 );
 
 CREATE TABLE campamento(
   rif_camp VARCHAR(100),
   capacidad INTEGER NOT NULL,
-  CONSTRAINT capacidad
+  precio INTEGER NOT NULL,
+  servicio_campamento BOOLEAN,
+  CONSTRAINT capacidad_valida CHECK(
+    capacidad > 0
+  ),
   PRIMARY KEY (rif_camp)
 );
 
 CREATE TABLE proveedor(
-  id_proveedor INTEGER,
-  rif_resid VARCHAR(100),
+  id_proveedor VARCHAR(40),
   usuario VARCHAR(30) NOT NULL,
+  ciudad VARCHAR(30),
   clave VARCHAR(255) NOT NULL,
-  estado VARCHAR(20),
-  nacionalidad VARCHAR(20) NOT NULL,
-  nombre_c VARCHAR(20) NOT NULL,
+  estado VARCHAR(30),
+  nacionalidad VARCHAR(30) NOT NULL,
+  nombre_p VARCHAR(40) NOT NULL,
+  pais_origen varchar(30),
+  direccion_R varchar(40),
   edo_civil estado_civil NOT NULL,
   PRIMARY KEY (id_proveedor)
 );
 
 CREATE TABLE ruta(
-  id_r VARCHAR(50),
-  origen VARCHAR(50),
-  destino VARCHAR(50),
-  tipo tipo_ruta,
+  id_r VARCHAR,
+  origen VARCHAR NOT NULL,
+  destino VARCHAR NOT NULL,
+  distancia INTEGER NOT NULL,
+  nombre_l VARCHAR NOT NULL,
+  tipo_l tipo_ruta NOT NULL,
+  cupo INTEGER NOT NULL,
+  precio INTEGER NOT NULL,
+  fecha DATE NOT NULL,
   PRIMARY KEY (id_r)
 );
 
+CREATE TABLE resid_esta_en(
+  id serial PRIMARY KEY,
+  rif_resid VARCHAR,
+  direccion_r VARCHAR,
+  FOREIGN KEY (rif_resid,direccion_r) REFERENCES residencia(rif_resid,direccion_r) ON DELETE CASCADE
+);
+
+CREATE TABLE posada_esta_en(
+  id SERIAL PRIMARY KEY,
+  rif_posada VARCHAR,
+  direccion_p VARCHAR,
+  FOREIGN KEY (rif_posada,direccion_p) REFERENCES posada(rif_posada,direccion_p)
+);
+
 CREATE TABLE contrata(
-  id_cliente INTEGER REFERENCES cliente(id_cliente) ON DELETE CASCADE,
+  id_cliente VARCHAR REFERENCES cliente(id_cliente) ON DELETE CASCADE,
   id_trasporte VARCHAR(50) REFERENCES plan_transporte(id_transporte) ON DELETE CASCADE,
   precio FLOAT NOT NULL,
   fecha DATE NOT NULL,
@@ -105,14 +159,14 @@ CREATE TABLE tiene(
 );
 
 CREATE TABLE compra(
-  id_cliente INTEGER REFERENCES cliente(id_cliente) ON DELETE CASCADE,
+  id_cliente VARCHAR REFERENCES cliente(id_cliente) ON DELETE CASCADE,
   codigo VARCHAR(50) REFERENCES programa(codigo) ON DELETE CASCADE,
   fecha DATE NOT NULL,
   PRIMARY KEY (id_cliente, codigo)
 );
 
 CREATE TABLE reserva(
-  id_cliente INTEGER REFERENCES cliente(id_cliente) ON DELETE CASCADE,
+  id_cliente VARCHAR REFERENCES cliente(id_cliente) ON DELETE CASCADE,
   rif VARCHAR(100),
   direccion VARCHAR(100),
   fecha DATE NOT NULL,
@@ -129,18 +183,18 @@ CREATE TABLE tipo(
 );
 
 CREATE TABLE es(
-  rif_posada VARCHAR(100) REFERENCES posada(rif_posada) ON DELETE CASCADE ,
+  ubicacion_posada INTEGER REFERENCES posada_esta_en(id) ON DELETE CASCADE,
   rif VARCHAR(100),
   direccion VARCHAR(100),
   FOREIGN KEY (rif,direccion) REFERENCES hospedaje(rif,direccion) ON DELETE CASCADE
 );
 
 CREATE TABLE es_una(
-  rif_resid VARCHAR(100) REFERENCES residencia(rif_resid),
-  rif VARCHAR(100),
-  direccion VARCHAR(100),
+  ubicacion_resid INTEGER REFERENCES resid_esta_en(id) ON DELETE CASCADE,
+  rif VARCHAR,
+  direccion VARCHAR,
   FOREIGN KEY (rif,direccion) REFERENCES hospedaje(rif,direccion) ON DELETE CASCADE,
-  PRIMARY KEY (rif_resid,rif,direccion)
+  PRIMARY KEY (ubicacion_resid,rif,direccion)
 );
 
 CREATE TABLE galeria(
@@ -188,7 +242,7 @@ CREATE TABLE contacto_hospedaje(
 );
 
 CREATE TABLE requerimiento(
-  id INTEGER REFERENCES proveedor(id_proveedor) ON DELETE CASCADE,
+  id VARCHAR REFERENCES proveedor(id_proveedor) ON DELETE CASCADE,
   requisito VARCHAR(100),
   PRIMARY KEY (id,requisito)
 );
@@ -197,12 +251,12 @@ CREATE TABLE opinion(
   fecha DATE NOT NULL,
   descripcion VARCHAR(100) NOT NULL,
   nombre_dt VARCHAR(100) REFERENCES destino_turistico(nombre) ON DELETE CASCADE,
-  id_cliente INTEGER REFERENCES cliente(id_cliente),
+  id_cliente VARCHAR REFERENCES cliente(id_cliente),
   PRIMARY KEY (nombre_dt,id_cliente)
 );
 
 CREATE TABLE familia_c(
-  id_cliente INTEGER REFERENCES cliente(id_cliente),
+  id_cliente VARCHAR REFERENCES cliente(id_cliente),
   relacion VARCHAR(20) NOT NULL,
   nombre VARCHAR(30) NOT NULL,
   fecha_nac DATE NOT NULL,
@@ -210,7 +264,7 @@ CREATE TABLE familia_c(
 );
 
 CREATE TABLE familia_prov(
-  id_prov INTEGER REFERENCES proveedor(id_proveedor),
+  id_prov VARCHAR REFERENCES proveedor(id_proveedor),
   relacion VARCHAR(20) NOT NULL,
   nombre VARCHAR(30) NOT NULL,
   fecha_nac DATE NOT NULL,
