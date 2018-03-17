@@ -12,7 +12,7 @@ CREATE DOMAIN tipo_posada
 
 CREATE TABLE cliente(
   id_cliente VARCHAR(40),
-  usuario VARCHAR(30) NOT NULL,
+  usuario VARCHAR(30) UNIQUE NOT NULL,
   ciudad VARCHAR(30),
   clave VARCHAR(255) NOT NULL,
   estado VARCHAR(30),
@@ -105,7 +105,7 @@ CREATE TABLE campamento(
 
 CREATE TABLE proveedor(
   id_proveedor VARCHAR(40),
-  usuario VARCHAR(30) NOT NULL,
+  usuario VARCHAR(30) UNIQUE NOT NULL,
   ciudad VARCHAR(30),
   clave VARCHAR(255) NOT NULL,
   estado VARCHAR(30),
