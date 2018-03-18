@@ -282,6 +282,7 @@ GRANT ALL PRIVILEGES ON DATABASE proyecto_turismo TO admin_turismo;
 
 CREATE USER cliente_turismo WITH PASSWORD 'contraseña random';
 GRANT INSERT ON TABLE cliente TO cliente_turismo;
+GRANT UPDATE ON TABLE cliente TO cliente_turismo;
 GRANT SELECT ON TABLE cliente TO cliente_turismo;
 GRANT SELECT ON TABLE posada TO cliente_turismo;
 GRANT SELECT ON TABLE hotel TO cliente_turismo;
