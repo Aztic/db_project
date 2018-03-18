@@ -1,3 +1,8 @@
+CREATE DATABASE proyecto_turismo;
+
+\c proyecto_turismo
+
+
 CREATE DOMAIN estado_civil
   as VARCHAR(20)
   CHECK (VALUE IN ('Soltero','Casado','Viudo'));
@@ -272,5 +277,16 @@ CREATE TABLE familia_prov(
 );
 
 
+CREATE USER admin_turismo WITH PASSWORD 'contraseña muy segura';
+GRANT ALL PRIVILEGES ON DATABASE proyecto_turismo TO admin_turismo;
+
+CREATE USER cliente_turismo WITH PASSWORD 'contraseña random';
+GRANT INSERT ON TABLE cliente TO cliente_turismo;
+GRANT SELECT ON TABLE cliente TO cliente_turismo;
+GRANT SELECT ON TABLE posada TO cliente_turismo;
+GRANT SELECT ON TABLE hotel TO cliente_turismo;
+GRANT SELECT ON TABLE campamento TO cliente_turismo;
+GRANT SELECT ON TABLE residencia TO cliente_turismo;
+GRANT SELECT ON TABLE hospedaje TO cliente_turismo;
 
 
