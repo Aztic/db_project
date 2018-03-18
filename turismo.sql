@@ -24,6 +24,7 @@ CREATE TABLE cliente(
   nacionalidad VARCHAR(30) NOT NULL,
   nombre_c VARCHAR(40) NOT NULL,
   edo_civil estado_civil NOT NULL,
+  es_admin BOOLEAN DEFAULT FALSE,
   PRIMARY KEY (id_cliente)
 );
 
