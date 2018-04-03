@@ -280,6 +280,7 @@ CREATE TABLE familia_prov(
 
 CREATE USER admin_turismo WITH PASSWORD 'contraseña muy segura';
 GRANT ALL PRIVILEGES ON DATABASE proyecto_turismo TO admin_turismo;
+GRANT ALL PRIVILEGES ON ALL TABLES TO admin_turismo;
 
 CREATE USER cliente_turismo WITH PASSWORD 'contraseña random';
 GRANT INSERT ON TABLE cliente TO cliente_turismo;
