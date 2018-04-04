@@ -128,6 +128,7 @@ CREATE TABLE ruta(
   origen VARCHAR NOT NULL,
   destino VARCHAR NOT NULL,
   distancia INTEGER NOT NULL,
+  rif_proveedor VARCHAR NOT NULL,
   nombre_l VARCHAR NOT NULL,
   tipo_l tipo_ruta NOT NULL,
   cupo INTEGER NOT NULL,
@@ -275,6 +276,13 @@ CREATE TABLE familia_prov(
   nombre VARCHAR(30) NOT NULL,
   fecha_nac DATE NOT NULL,
   PRIMARY KEY (id_prov)
+);
+
+CREATE TABLE visita(
+  nombre_destino VARCHAR NOT NULL REFERENCES destino_turistico(nombre),
+  id_cliente VARCHAR NOT NULL REFERENCES cliente(id_cliente),
+  fecha DATE NOT NULL,
+  PRIMARY KEY(nombre_destino,id_cliente,fecha)
 );
 
 
