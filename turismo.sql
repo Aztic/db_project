@@ -2,7 +2,6 @@ CREATE DATABASE proyecto_turismo;
 
 \c proyecto_turismo
 
-
 CREATE DOMAIN estado_civil
   as VARCHAR(20)
   CHECK (VALUE IN ('Soltero','Casado','Viudo'));
@@ -24,7 +23,6 @@ CREATE TABLE cliente(
   nacionalidad VARCHAR(30) NOT NULL,
   nombre_c VARCHAR(40) NOT NULL,
   edo_civil estado_civil NOT NULL,
-  es_admin BOOLEAN DEFAULT FALSE,
   PRIMARY KEY (id_cliente)
 );
 
@@ -49,7 +47,7 @@ CREATE TABLE programa(
 );
 
 CREATE TABLE hospedaje(
-  precio FLOAT NOT NULL,
+  precio REAL NOT NULL,
   rif VARCHAR(30) NOT NULL,
   direccion TEXT NOT NULL,
   PRIMARY KEY (rif, direccion)
@@ -60,11 +58,12 @@ CREATE TABLE hotel(
   direccion_h TEXT,
   estrellas INTEGER NOT NULL,
   servicio BOOLEAN NOT NULL,
-  precio INTEGER NOT NULL,
+  precio FLOAT NOT NULL,
   CONSTRAINT precio_valido CHECK(
     precio > 0
   ),
-  PRIMARY KEY(rif_hotel,direccion_h)
+  PRIMARY KEY(rif_hotel,direccion_h),
+  FOREIGN KEY (rif_hotel, direccion_h) REFERENCES hospedaje ON DELETE CASCADE
 );
 
 CREATE TABLE posada(
@@ -74,7 +73,7 @@ CREATE TABLE posada(
   servicioP INTEGER NOT NULL,
   habitacion INTEGER NOT NULL,
   tipo tipo_posada NOT NULL,
-  precio INTEGER NOT NULL,
+  precio FLOAT NOT NULL,
   CONSTRAINT puntuacion_valida CHECK (
     calidad > 0
   ),
@@ -84,29 +83,35 @@ CREATE TABLE posada(
   CONSTRAINT precio_valido CHECK (
     precio > 0
   ),
-  PRIMARY KEY (rif_posada, direccion_p)
+  PRIMARY KEY (rif_posada, direccion_p),
+  FOREIGN KEY (rif_posada, direccion_p) REFERENCES hospedaje ON DELETE CASCADE
 );
 
 CREATE TABLE residencia(
   rif_resid VARCHAR(100),
   direccion_r TEXT,
+  id_prov VARCHAR(40),
   servicio_residencia BOOLEAN NOT NULL,
-  precio INTEGER NOT NULL,
+  precio FLOAT NOT NULL,
   CONSTRAINT precio_valio CHECK(
     precio > 0
   ),
-  PRIMARY KEY (rif_resid, direccion_r)
+  PRIMARY KEY (rif_resid, direccion_r),
+  FOREIGN KEY (id_prov) REFERENCES proveedor,
+  FOREIGN KEY (rif_resid, direccion_r) REFERENCES hospedaje ON DELETE CASCADE
 );
 
 CREATE TABLE campamento(
   rif_camp VARCHAR(100),
+  direccion_c VARCHAR,
   capacidad INTEGER NOT NULL,
-  precio INTEGER NOT NULL,
+  precio FLOAT NOT NULL,
   servicio_campamento BOOLEAN,
   CONSTRAINT capacidad_valida CHECK(
     capacidad > 0
   ),
-  PRIMARY KEY (rif_camp)
+  PRIMARY KEY (rif_camp, direccion_c),
+  FOREIGN KEY (rif_camp, direccion_c) REFERENCES hospedaje ON DELETE CASCADE
 );
 
 CREATE TABLE proveedor(
@@ -118,13 +123,12 @@ CREATE TABLE proveedor(
   nacionalidad VARCHAR(30) NOT NULL,
   nombre_p VARCHAR(40) NOT NULL,
   pais_origen varchar(30),
-  direccion_R varchar(40),
   edo_civil estado_civil NOT NULL,
   PRIMARY KEY (id_proveedor)
 );
 
 CREATE TABLE ruta(
-  id_r VARCHAR,
+  id_r VARCHAR(50),
   origen VARCHAR NOT NULL,
   destino VARCHAR NOT NULL,
   distancia INTEGER NOT NULL,
@@ -132,10 +136,11 @@ CREATE TABLE ruta(
   nombre_l VARCHAR NOT NULL,
   tipo_l tipo_ruta NOT NULL,
   cupo INTEGER NOT NULL,
-  precio INTEGER NOT NULL,
+  precio FLOAT NOT NULL,
   fecha DATE NOT NULL,
   PRIMARY KEY (id_r)
 );
+
 
 CREATE TABLE resid_esta_en(
   id serial PRIMARY KEY,
@@ -152,24 +157,30 @@ CREATE TABLE posada_esta_en(
 );
 
 CREATE TABLE contrata(
-  id_cliente VARCHAR REFERENCES cliente(id_cliente) ON DELETE CASCADE,
-  id_trasporte VARCHAR(50) REFERENCES plan_transporte(id_transporte) ON DELETE CASCADE,
+  id_cliente VARCHAR(40),
+  id_trasporte VARCHAR(50),
   precio FLOAT NOT NULL,
   fecha DATE NOT NULL,
-  PRIMARY KEY (id_cliente,id_trasporte)
+  PRIMARY KEY (id_cliente,id_trasporte),
+  FOREIGN KEY (id_cliente) REFERENCES cliente ON DELETE CASCADE,
+  FOREIGN KEY (id_trasporte) REFERENCES plan_transporte ON DELETE CASCADE
 );
 
 CREATE TABLE tiene(
-  id_transporte VARCHAR(50) REFERENCES plan_transporte(id_transporte) ON DELETE CASCADE,
-  id_r VARCHAR(50) REFERENCES ruta(id_r) ON DELETE CASCADE,
-  PRIMARY KEY (id_transporte, id_r)
+  id_transporte VARCHAR(50),
+  id_r VARCHAR(50),
+  PRIMARY KEY (id_transporte, id_r),
+  FOREIGN KEY (id_transporte) REFERENCES plan_transporte ON DELETE CASCADE,
+  FOREIGN KEY (id_r) REFERENCES ruta ON DELETE CASCADE
 );
 
 CREATE TABLE compra(
-  id_cliente VARCHAR REFERENCES cliente(id_cliente) ON DELETE CASCADE,
-  codigo VARCHAR(50) REFERENCES programa(codigo) ON DELETE CASCADE,
+  id_cliente VARCHAR(40),
+  codigo VARCHAR(30),
   fecha DATE NOT NULL,
-  PRIMARY KEY (id_cliente, codigo)
+  PRIMARY KEY (id_cliente, codigo),
+  FOREIGN KEY (id_cliente) REFERENCES cliente ON DELETE CASCADE,
+  FOREIGN KEY (codigo) REFERENCES programa ON DELETE CASCADE
 );
 
 CREATE TABLE reserva(
@@ -177,16 +188,16 @@ CREATE TABLE reserva(
   rif VARCHAR(100),
   direccion TEXT,
   fecha DATE NOT NULL,
-  FOREIGN KEY (rif, direccion) REFERENCES hospedaje(rif,direccion) ON DELETE CASCADE,
-  PRIMARY KEY (id_cliente,rif,direccion)
+  PRIMARY KEY (id_cliente, rif, direccion),
+  FOREIGN KEY (id_cliente) REFERENCES cliente ON DELETE CASCADE,
+  FOREIGN KEY (rif, direccion) REFERENCES hospedaje ON DELETE CASCADE
 );
 
 CREATE TABLE tipo(
-  rif VARCHAR(100),
-  direccion TEXT,
-  rif_camp VARCHAR(100) REFERENCES campamento(rif_camp) ON DELETE CASCADE,
-  FOREIGN KEY (rif,direccion) REFERENCES hospedaje(rif,direccion) ON DELETE CASCADE,
-  PRIMARY KEY (rif_camp)
+  rif_camp VARCHAR(100),
+  direccion VARCHAR,
+  PRIMARY KEY (rif_camp),
+  FOREIGN KEY (rif_camp, direccion) REFERENCES campamento ON DELETE CASCADE
 );
 
 CREATE TABLE es(
@@ -202,81 +213,103 @@ CREATE TABLE es_una(
   direccion TEXT,
   FOREIGN KEY (rif,direccion) REFERENCES hospedaje(rif,direccion) ON DELETE CASCADE,
   PRIMARY KEY (ubicacion_resid,rif,direccion)
+>>>>>>> master
 );
 
 CREATE TABLE galeria(
-  nombre VARCHAR(100) REFERENCES destino_turistico(nombre),
+  nombre VARCHAR(40),
   foto VARCHAR(50),
-  PRIMARY KEY (nombre,foto)
+  PRIMARY KEY (nombre, foto),
+  FOREIGN KEY (nombre) REFERENCES destino_turistico ON DELETE CASCADE
 );
 
 CREATE TABLE comercio(
-  nombre VARCHAR(100) REFERENCES destino_turistico(nombre) ON DELETE CASCADE,
+  nombre VARCHAR(40),
   local VARCHAR(100),
-  PRIMARY KEY (nombre,local)
+  PRIMARY KEY (nombre, local),
+  FOREIGN KEY (nombre) REFERENCES destino_turistico ON DELETE CASCADE
 );
 
 CREATE TABLE sitios_f(
-  nombre VARCHAR(100) REFERENCES destino_turistico(nombre) ON DELETE CASCADE,
+  nombre VARCHAR(40),
   sitio_f VARCHAR(100),
-  PRIMARY KEY (nombre,sitio_f)
+  PRIMARY KEY (nombre, sitio_f),
+  FOREIGN KEY (nombre) REFERENCES destino_turistico ON DELETE CASCADE
 );
 
 CREATE TABLE informacion(
-  nombre VARCHAR(100) REFERENCES destino_turistico(nombre) ON DELETE CASCADE,
-  descripcion TEXT,
-  PRIMARY KEY (nombre, descripcion)
+
+  nombre VARCHAR(40),
+  descripcion VARCHAR(100),
+  PRIMARY KEY (nombre, descripcion),
+  FOREIGN KEY (nombre) REFERENCES destino_turistico ON DELETE CASCADE
+);
+
+CREATE TABLE historias(
+  nombre VARCHAR(40),
+  leyenda_anecdota VARCHAR,
+  PRIMARY KEY (nombre, leyenda_anecdota),
+  FOREIGN KEY (nombre) REFERENCES destino_turistico ON DELETE CASCADE
 );
 
 CREATE TABLE edo(
-  nombre VARCHAR (100) REFERENCES destino_turistico(nombre) ON DELETE CASCADE,
+  nombre VARCHAR (40),
   estado VARCHAR (20),
-  PRIMARY KEY (nombre,estado)
+  PRIMARY KEY (nombre, estado),
+  FOREIGN KEY (nombre) REFERENCES destino_turistico ON DELETE CASCADE
 );
 
 CREATE TABLE contacto_ruta(
-  rif VARCHAR(100) REFERENCES ruta(id_r) ON DELETE CASCADE,
+  rif VARCHAR(40),
   telef VARCHAR(15),
-  PRIMARY KEY (rif,telef)
+  PRIMARY KEY (rif, telef),
+  FOREIGN KEY (rif) REFERENCES ruta ON DELETE CASCADE
 );
 
 CREATE TABLE contacto_hospedaje(
   rif VARCHAR(100),
   direccion TEXT,
   telef VARCHAR(15),
-  FOREIGN KEY (rif,direccion) REFERENCES hospedaje(rif,direccion) ON DELETE CASCADE,
-  PRIMARY KEY (rif,telef)
+  PRIMARY KEY (rif, direccion, telef),
+  FOREIGN KEY (rif, direccion) REFERENCES hospedaje ON DELETE CASCADE
 );
 
 CREATE TABLE requerimiento(
-  id VARCHAR REFERENCES proveedor(id_proveedor) ON DELETE CASCADE,
+  id VARCHAR(40),
   requisito VARCHAR(100),
-  PRIMARY KEY (id,requisito)
+  PRIMARY KEY (id, requisito),
+  FOREIGN KEY (id) REFERENCES proveedor ON DELETE CASCADE
 );
 
 CREATE TABLE opinion(
   fecha DATE NOT NULL,
-  descripcion TEXT NOT NULL,
-  nombre_dt VARCHAR(100) REFERENCES destino_turistico(nombre) ON DELETE CASCADE,
-  id_cliente VARCHAR REFERENCES cliente(id_cliente),
-  PRIMARY KEY (nombre_dt,id_cliente)
+  descripcion VARCHAR(100),
+  nombre_dt VARCHAR(40),
+  id_cliente VARCHAR(40),
+  PRIMARY KEY (fecha, descripcion, nombre_dt, id_cliente),
+  FOREIGN KEY (nombre_dt) REFERENCES destino_turistico ON DELETE CASCADE,
+  FOREIGN KEY (id_cliente) REFERENCES cliente ON DELETE CASCADE
+
 );
 
 CREATE TABLE familia_c(
-  id_cliente VARCHAR REFERENCES cliente(id_cliente),
-  relacion VARCHAR(20) NOT NULL,
-  nombre VARCHAR(30) NOT NULL,
-  fecha_nac DATE NOT NULL,
-  PRIMARY KEY (id_cliente)
+  id_cliente VARCHAR(40),
+  relacion VARCHAR(20),
+  nombre VARCHAR(30),
+  fecha_nac DATE,
+  PRIMARY KEY (id_cliente, relacion, nombre, fecha_nac),
+  FOREIGN KEY (id_cliente) REFERENCES cliente ON DELETE CASCADE
 );
 
 CREATE TABLE familia_prov(
-  id_prov VARCHAR REFERENCES proveedor(id_proveedor),
-  relacion VARCHAR(20) NOT NULL,
-  nombre VARCHAR(30) NOT NULL,
-  fecha_nac DATE NOT NULL,
-  PRIMARY KEY (id_prov)
+  id_prov VARCHAR(40),
+  relacion VARCHAR(20),
+  nombre VARCHAR(30),
+  fecha_nac DATE,
+  PRIMARY KEY (id_prov, relacion, nombre, fecha_nac),
+  FOREIGN KEY (id_prov) REFERENCES proveedor ON DELETE CASCADE
 );
+
 
 CREATE TABLE visita(
   nombre_destino VARCHAR NOT NULL REFERENCES destino_turistico(nombre),
@@ -284,6 +317,7 @@ CREATE TABLE visita(
   fecha DATE NOT NULL,
   PRIMARY KEY(nombre_destino,id_cliente,fecha)
 );
+
 
 
 CREATE USER admin_turismo WITH PASSWORD 'contraseña muy segura';
@@ -299,5 +333,3 @@ GRANT SELECT ON TABLE hotel TO cliente_turismo;
 GRANT SELECT ON TABLE campamento TO cliente_turismo;
 GRANT SELECT ON TABLE residencia TO cliente_turismo;
 GRANT SELECT ON TABLE hospedaje TO cliente_turismo;
-
-
