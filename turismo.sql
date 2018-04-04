@@ -35,7 +35,7 @@ CREATE TABLE destino_turistico(
 
 CREATE TABLE plan_transporte(
   id_transporte VARCHAR(50),
-  descripcion VARCHAR(100),
+  descripcion TEXT,
   PRIMARY KEY (id_transporte)
 );
 
