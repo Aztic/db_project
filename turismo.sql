@@ -65,13 +65,13 @@ CREATE TABLE programa(
 
 CREATE TABLE hospedaje(
   precio REAL NOT NULL,
-  rif VARCHAR(30) NOT NULL,
+  rif VARCHAR(100) NOT NULL,
   direccion TEXT NOT NULL,
   PRIMARY KEY (rif, direccion)
 );
 
 CREATE TABLE hotel(
-  rif_hotel VARCHAR(30),
+  rif_hotel VARCHAR(100),
   direccion_h TEXT,
   estrellas INTEGER NOT NULL,
   servicio BOOLEAN NOT NULL,
