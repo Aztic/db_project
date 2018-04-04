@@ -186,7 +186,7 @@ CREATE TABLE tipo(
   rif_camp VARCHAR(100),
   direccion_c TEXT,
   PRIMARY KEY (rif_camp),
-  FOREIGN KEY (rif_camp, direccion_c) REFERENCES campamento ON DELETE CASCADE
+  FOREIGN KEY (rif_camp, direccion_c) REFERENCES campamento ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE es(
